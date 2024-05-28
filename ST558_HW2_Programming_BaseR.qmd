@@ -5,9 +5,9 @@ format: html
 editor: visual
 ---
 
-##Task 1 - Basic Vector Practice
+## Task 1 - Basic Vector Practice
 
-Let's begin our practice by comparing blood pressure results of 20 patients before and after a treatment.
+*Let's begin our practice by comparing blood pressure results of 20 patients before and after a treatment.*
 
 ```{r}
 preblood <- c(130, 128, 116, 124, 133, 134, 118, 126, 114, 127, 141, 138, 128, 140, 137, 131, 120, 128, 139, 135)
@@ -17,7 +17,7 @@ postblood <- c(114, 98, 113, 99, 107, 116, 113, 111, 119, 117, 101, 119, 130, 12
 blood_diff <- postblood - preblood
 ```
 
-Calculate average difference in blood pressure after treatment.
+*Calculate average difference in blood pressure after treatment.*
 
 ```{r}
 avg_tot_diff <- mean(blood_diff)
@@ -27,68 +27,71 @@ names(blood_diff) <- paste("Subject", 1:20, sep = "_")
 avg_tot_diff
 ```
 
-After establishing some attributes of the dataset, let's further refine our analysis, by determining which
+*After establishing some attributes of the dataset, let's further refine our analysis, by determining which subset of subjects experienced a "positive" blood pressure gain. In this case, meaning their blood pressure decreased in the post vs pre blood pressure measurement.*
 
 ```{r}
 which(blood_diff < 0,useNames = T)
 ```
 
-create a subset of subjects with positive gain after treatment:
+*Create a subset of subjects with positive gain after treatment:*
 
 ```{r}
-x <- blood_diff[blood_diff < 0]
-x
+blood_diff[blood_diff < 0]
 ```
 
-calculate average decrease in blood pressure for those whose blood pressure decreased after treatment:
+*Calculate average decrease in blood pressure for those whose blood pressure decreased after treatment:*
 
 ```{r}
-mean(x)
+mean(blood_diff[blood_diff < 0])
 ```
 
-##Task 2 - Basic Dataframe Practice Create a dataframe
+## Task 2 - Basic Dataframe Practice Create a dataframe
 
+*First, create a dataframe from the preceding data.*
 ```{r}
 patient <- c(1:20)
 b_df <- data.frame(patient = patient,pre_bp = preblood, post_bp = postblood, diff_bp = blood_diff)
 ```
 
-Return only rows where there was a positive gain:
+*Return only rows where there was a positive gain:*
 ```{r}
 b_df[b_df$diff_bp < 0, ]
 ```
 
-Add a 'greater than 120 post_bp' column
+*Add a 'greater than 120 post_bp' column*
 
 ```{r}
 b_df$hi_post <- b_df$post_bp > 120
 b_df
 ```
 
-print the dataframe
+*print the dataframe*
 
 ```{r}
 knitr::kable(b_df)
 ```
 
-##Task 3 - List Practice
-Create a new dataframe from data associated with a placebo group.
+## Task 3 - List Practice
+
+*Create a new dataframe from data associated with a placebo group.*
 ```{r}
 pre_pl <- c(138, 135, 147, 117, 152, 134, 114, 121, 131, 130)
 post_pl <- c(105, 136, 123, 130, 134, 143, 135, 139, 120, 124)
 patient_p <- c(1:10)
 diff_p <- post_pl - pre_pl
-b_p_df <- data.frame(patient = patient_p,pre_placebo = pre_pl,post_placebo = post_pl, placebo_diff = diff_p)
-b_p_df$hi_post <- b_p_df$post_placebo > 120
+names(diff_p) <- paste("Subject", 1:10, sep = "_")
+b_p_df <- data.frame(patient = patient_p,pre_bp = pre_pl,post_bp = post_pl, diff_bp = diff_p)
+b_p_df$hi_post <- b_p_df$post_bp > 120
 b_p_df
 ```
-Create a list combining the placebo & non-placebo dataframes.
+
+*Create a list combining the placebo & non-placebo dataframes.*
 ```{r}
 ex_list <- list(treatment = b_df, placebo = b_p_df)
 ex_list
 ```
 
-Access the first element of 'ex_list' in 3 different ways
+*Access the first element of 'ex_list' in 3 different ways*
 
 ```{r}
 #1) subset with []
@@ -99,17 +102,19 @@ ex_list[1]
 ex_list[[1]]
 ```
 ```{r}
-#3
+#3 Subset contents by identifying element name
+ex_list$treatment
 ```
 
-Access the 'placebo' dataframe's 'pre_bp' column
+*Access the 'placebo' dataframe's 'pre_bp' column*
 ```{r}
 ex_list[[2]][2]
 ```
 
 
-##Task 4 - Control Flow Practice
-Start by adding a 'status' column to each dataframe
+## Task 4 - Control Flow Practice
+
+*Start by adding a 'status' column to each dataframe*
 ```{r}
 ex_list[[1]]$status <- character(20)
 ex_list[[2]]$status <- character(10)
@@ -125,39 +130,72 @@ for (i in seq_along(ex_list[[1]]$post_bp)) {
 }
 ex_list[1]
 ```
-Finally, populate 'status' column for the 'placebo' dataframe
+
+*Finally, populate 'status' column for the 'placebo' dataframe*
 ```{r}
-for (i in seq_along(ex_list[[2]]$post_placebo)) {
-  if (ex_list[[2]]$post_placebo[i] < 120) {
+for (i in seq_along(ex_list[[2]]$post_bp)) {
+  if (ex_list[[2]]$post_bp[i] < 120) {
     ex_list[[2]]$status[i] <- 'optimal'
-  } else if (ex_list[[2]]$post_placebo[i] > 130) {
+  } else if (ex_list[[2]]$post_bp[i] > 130) {
     ex_list[[2]]$status[i] <- 'high'
   } else ex_list[[2]]$status[i] <- 'borderline'
 }
 ex_list[2]
 ```
 
-##Task 5 - Function Writing
+## Task 5 - Function Writing
 
-Define a function that finds statistical measures (i.e. mean, median, std) for a dataset (a list) with treatment & placebo data groups.
+*Define a function that finds statistical measures (i.e. mean, median, std) for a dataset (a list) with treatment & placebo data groups.*
 ```{r}
 reveal <- function(experiment_list, stat = 'mean') {
   if (!is.list(experiment_list)) {
     stop("Data Entry is not a list")
   } else if (!is.data.frame(experiment_list[[1]]) | !is.data.frame(experiment_list[[2]])) {
     stop("Entered list does not contain dataframes")
+  } else if (!stat == 'mean' & !stat == 'var' & !stat == 'min' & 
+             !stat == 'max' & !stat == 'sd') {
+    stop("Entered unavailable stat option, please limit to mean,
+    var, min, max, or sd")
   }
-  switch (stat,
-    'mean' = colMeans(experiment_list[[1]][2:4]),
-    'max' = max(experiment_list[[1]]),
-#    'var' = colVars(experiment_list[[1]], cols = ($pre_bp, $post_bp, $bp_diff),)
-  )
+  t_pre_bp <- get(stat)(experiment_list[[1]]$pre_bp)
+  t_post_bp <- get(stat)(experiment_list[[1]]$post_bp) 
+  t_diff_bp <- get(stat)(experiment_list[[1]]$diff_bp)
+  p_pre_bp <- get(stat)(experiment_list[[2]]$pre_bp)
+  p_post_bp <- get(stat)(experiment_list[[2]]$post_bp)
+  p_diff_bp <- get(stat)(experiment_list[[2]]$diff_bp)
+  return_vec <- 
+    c(t_pre_bp, t_post_bp, t_diff_bp, p_pre_bp, p_post_bp, p_diff_bp)
+  return_nm <-
+    c(paste(stat, "_treatment_pre_bp", sep = ""),
+      paste(stat, "_treatment_post_bp", sep = ""),
+      paste(stat, "_treatment_diff_bp", sep = ""),
+      paste(stat, "_placebo_pre_bp", sep = ""),
+      paste(stat, "_placebo_post_bp", sep = ""),
+      paste(stat, "_placebo_diff_bp", sep = ""))
+  names(return_vec) <- return_nm
+  #  return_df <-
+#    data.frame(return_nm ,return_vec)
+  return(return_vec)
 }
+
 ```
 
-Now to test the function in question
+*Now to test the function in question, first w/o a 'stat' argument.*
 ```{r}
-z <- reveal(ex_list)
-z
+reveal(ex_list)
+```
+
+*Next, with a 'stat' argument of 'var', 'sd', 'min', and 'max'*
+```{r}
+reveal(ex_list, stat = 'var')
+```
+```{r}
+reveal(ex_list, stat = 'sd')
+```
+```{r}
+reveal(ex_list, stat = 'min')
+```
+```{r}
+reveal(ex_list, stat = 'max')
 ```
 
